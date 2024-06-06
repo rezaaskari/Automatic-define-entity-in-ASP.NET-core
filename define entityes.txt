@@ -1,0 +1,34 @@
+
+using System;
+using System.Linq;
+using System.Reflection;
+using Microsoft.EntityFrameworkCore;
+
+namespace YourNamespace
+{
+    public class YourDbContext : DbContext
+    {
+        public DbSet<TEntity> GetDbSet<TEntity>() where TEntity : class
+        {
+            return Set<TEntity>();
+        }
+
+        // Other DbSet properties and configuration...
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Use Reflection to find all entity types
+            var entityTypes = Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(Entity)));
+
+            foreach (var entityType in entityTypes)
+            {
+                // Define DbSet dynamically
+                modelBuilder.Entity(entityType);
+            }
+        }
+    }
+}
